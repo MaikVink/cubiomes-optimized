@@ -17,7 +17,7 @@ int main()
     r.scale = 16;
     // Define the position and size for a horizontal area:
     r.x = -60, r.z = -60;   // position (x,z)
-    r.sx = 1200, r.sz = 1200; // size (width,height)
+    r.sx = 1024, r.sz = 1024; // size (width,height)
     // Set the vertical range as a plane near sea level at scale 1:4.
     r.y = 15, r.sy = 1;
 
