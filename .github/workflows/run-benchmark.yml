@@ -21,6 +21,6 @@ jobs:
        version: latest
        platform: x64
     - name: Build program
-      run: gcc gen_biome_img/gen_biome_img.c libcubiomes.a -lm -fwrapv
+      run: cd gen_biome_img; gcc gen_biome_img.c ../libcubiomes.a -lm -fwrapv -o ./gen_biome_img.out; cd -
     - name: Run program
-      run: ./a.out
+      run: cd gen_biome_img; ./gen_biome_img.out; cd -
