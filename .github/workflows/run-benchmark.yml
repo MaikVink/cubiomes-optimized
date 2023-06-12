@@ -1,0 +1,32 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: configure
+      run: ./configure
+    - name: make
+      run: make
+    - name: make check
+      run: make check
+    - name: make distcheck
+      run: make distcheck
+    - name: Set up GCC
+      uses: egor-tensin/setup-gcc@v1.3
+      with:
+       version: latest
+       platform: x64
+    - name: Build program
+      run: gcc gen_biome_img/gen_biome_img.c libcubiomes.a -lm -fwrapv
+    - name: Run program
+      run: ./a.out
