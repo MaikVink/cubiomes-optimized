@@ -20,7 +20,7 @@ jobs:
       with:
        version: latest
        platform: x64
-    - name: Build program
-      run: cd gen_biome_img; gcc gen_biome_img.c ../libcubiomes.a -lm -fwrapv -o ./gen_biome_img.out; cd -
-    - name: Run program
-      run: cd gen_biome_img; ./gen_biome_img.out; cd -
+    - name: Build and run program
+      run: cd gen_biome_img; gcc gen_biome_img.c ../libcubiomes.a -lm -fwrapv -O3 -o ./gen_biome_img.out; cd -; cd gen_biome_img; ./gen_biome_img.out; cd -
+    - name: Profile program
+      run: cd gen_biome_img; gcc -O3 -ggdb3 -fno-omit-frame-pointer gen_biome_img.c ../libcubiomes.a -lm -fwrapv -o ./gen_biome_img.out; cd -; cd gen_biome_img; perf record -c 1000 -g ./gen_biome_img.out; perf report -g; cd -
