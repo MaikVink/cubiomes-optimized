@@ -1421,6 +1421,7 @@ float getSpline(const Spline *sp, const float *vals)
     {
         if (i) i--;
         float v = getSpline(sp->val[i], vals);
+        ENDFUNC("getSpline");
         return v + sp->der[i] * (f - sp->loc[i]);
     }
     const Spline *sp1 = sp->val[i-1];
