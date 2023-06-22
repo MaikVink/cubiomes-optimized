@@ -51,7 +51,7 @@ void draw_stronghold(unsigned char *pixels, Pos stronghold_pos, Range r, int pix
 
 int main() {
     Generator g;
-    int mc = MC_1_18;
+    int mc = MC_NEWEST;
     int stronghold_count = 16;
     uint64_t seed = 123LL;
     int pix4cell = 4;

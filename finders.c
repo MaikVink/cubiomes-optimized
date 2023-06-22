@@ -9,6 +9,8 @@
 
 
 #define PI 3.141592653589793
+#define STARTFUNC(name) printf("start "); printf(name); printf("\n")
+#define ENDFUNC(name) printf("return "); printf(name); printf("\n")
 
 
 
@@ -388,6 +390,8 @@ Pos locateBiome(
     const Generator *g, int x, int y, int z, int radius,
     uint64_t validB, uint64_t validM, uint64_t *rng, int *passes)
 {
+    STARTFUNC("locateBiome");
+
     Pos out = {x, z};
     int i, j, found;
     found = 0;
@@ -470,6 +474,7 @@ Pos locateBiome(
         *passes = found;
     }
 
+    ENDFUNC("locateBiome");
     return out;
 }
 
@@ -542,42 +547,57 @@ int areBiomesViable(
 
 int isStrongholdBiome(int mc, int id)
 {
-    if (!isOverworld(mc, id))
+    STARTFUNC("isStrongholdBiome");
+    if (!isOverworld(mc, id)) {
+        ENDFUNC("isStrongholdBiome");
         return 0;
-    if (isOceanic(id))
+    }
+    if (isOceanic(id)) {
+        ENDFUNC("isStrongholdBiome");
         return 0;
+    }
     switch (id)
     {
     case plains:
     case mushroom_fields:
     case taiga_hills:
+        ENDFUNC("isStrongholdBiome");
         return mc >= MC_1_7;
     case swamp:
+        ENDFUNC("isStrongholdBiome");
         return mc <= MC_1_6;
     case river:
     case frozen_river:
     case beach:
     case snowy_beach:
     case swamp_hills:
+        ENDFUNC("isStrongholdBiome");
         return 0;
     case mushroom_field_shore:
+        ENDFUNC("isStrongholdBiome");
         return mc >= MC_1_13;
     case stone_shore:
+        ENDFUNC("isStrongholdBiome");
         return mc <= MC_1_17;
     case bamboo_jungle:
     case bamboo_jungle_hills:
         // simulate MC-199298
+        ENDFUNC("isStrongholdBiome");
         return mc <= MC_1_15 || mc >= MC_1_18;
     case mangrove_swamp:
     case deep_dark:
+        ENDFUNC("isStrongholdBiome");
         return 0;
     default:
+        ENDFUNC("isStrongholdBiome");
         return 1;
     }
+    ENDFUNC("isStrongholdBiome");
 }
 
 Pos initFirstStronghold(StrongholdIter *sh, int mc, uint64_t s48)
 {
+    STARTFUNC("initFirstStronghold");
     double dist, angle;
     uint64_t rnds;
     Pos p;
@@ -607,11 +627,13 @@ Pos initFirstStronghold(StrongholdIter *sh, int mc, uint64_t s48)
         sh->mc = mc;
     }
 
+    ENDFUNC("initFirstStronghold");
     return p;
 }
 
 int nextStronghold(StrongholdIter *sh, const Generator *g)
 {
+    STARTFUNC("nextStronghold");
     uint64_t validB = 0, validM = 0;
     int i;
     for (i = 0; i < 64; i++)
@@ -644,6 +666,7 @@ int nextStronghold(StrongholdIter *sh, const Generator *g)
     }
     else
     {
+        ENDFUNC("nextStronghold");
         return 0;
     }
     // staircase is located at (4, 4) in chunk
@@ -677,6 +700,7 @@ int nextStronghold(StrongholdIter *sh, const Generator *g)
     sh->nextapprox.z = ((int)round(sin(sh->angle) * sh->dist) * 16) + 8;
     sh->index++;
 
+    ENDFUNC("nextStronghold");
     return (sh->mc >= MC_1_9 ? 128 : 3) - (sh->index-1);
 }
 

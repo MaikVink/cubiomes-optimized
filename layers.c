@@ -6,7 +6,7 @@
 #include <float.h>
 
 #define STARTFUNC(name) printf("start "); printf(name); printf("\n")
-#define ENDFUNC(name) printf("return\n")
+#define ENDFUNC(name) printf("return "); printf(name); printf("\n")
 
 //==============================================================================
 // Essentials
@@ -188,30 +188,46 @@ int biomeExists(int mc, int id)
 
 int isOverworld(int mc, int id)
 {
-    if (!biomeExists(mc, id))
+    STARTFUNC("isOverworld");
+    if (!biomeExists(mc, id)) {
+        ENDFUNC("isOverworld");
         return 0;
+    }
 
-    if (id >= small_end_islands && id <= end_barrens) return 0;
-    if (id >= soul_sand_valley && id <= basalt_deltas) return 0;
+    if (id >= small_end_islands && id <= end_barrens) {
+        ENDFUNC("isOverworld");
+        return 0;
+    }
+    if (id >= soul_sand_valley && id <= basalt_deltas) {
+        ENDFUNC("isOverworld");
+        return 0; 
+    }
 
     switch (id)
     {
     case nether_wastes:
     case the_end:
+        ENDFUNC("isOverworld");
         return 0;
     case frozen_ocean:
+        ENDFUNC("isOverworld");
         return mc <= MC_1_6 || mc >= MC_1_13;
     case mountain_edge:
+        ENDFUNC("isOverworld");
         return mc <= MC_1_6;
     case deep_warm_ocean:
     case the_void:
+        ENDFUNC("isOverworld");
         return 0;
     case tall_birch_forest:
+        ENDFUNC("isOverworld");
         return mc <= MC_1_8 || mc >= MC_1_11;
     case dripstone_caves:
     case lush_caves:
+        ENDFUNC("isOverworld");
         return mc >= MC_1_18;
     }
+    ENDFUNC("isOverworld");
     return 1;
 }
 

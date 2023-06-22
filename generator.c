@@ -7,7 +7,7 @@
 #include <math.h>
 
 #define STARTFUNC(name) printf("start "); printf(name); printf("\n")
-#define ENDFUNC(name) printf("return\n")
+#define ENDFUNC(name) printf("return "); printf(name); printf("\n")
 
 int mapOceanMixMod(const Layer * l, int * out, int x, int z, int w, int h)
 {
