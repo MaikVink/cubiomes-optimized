@@ -6,6 +6,8 @@
 #include <string.h>
 #include <math.h>
 
+#define STARTFUNC(name) printf(name); printf("\n")
+#define ENDFUNC(name) printf("return\n")
 
 int mapOceanMixMod(const Layer * l, int * out, int x, int z, int w, int h)
 {
@@ -178,6 +180,7 @@ int *allocCache(const Generator *g, Range r)
 
 int genBiomes(const Generator *g, int *cache, Range r)
 {
+    STARTFUNC("genBiomes");
     int err = 1;
     int64_t i, k;
 
@@ -194,11 +197,14 @@ int genBiomes(const Generator *g, int *cache, Range r)
                 for (i = 0; i < r.sx*r.sz; i++)
                     cache[k*r.sx*r.sz + i] = cache[i];
             }
+            ENDFUNC("genBiomes");
             return 0;
         }
         else if (g->mc >= MC_1_18)
         {
-            return genBiomeNoiseScaled(&g->bn, cache, r, g->sha);
+            int temp = genBiomeNoiseScaled(&g->bn, cache, r, g->sha);
+            ENDFUNC("genBiomes");
+            return temp;
         }
         else // g->mc <= MC_B1_7
         {
@@ -218,18 +224,20 @@ int genBiomes(const Generator *g, int *cache, Range r)
                 for (i = 0; i < r.sx*r.sz; i++)
                     cache[k*r.sx*r.sz + i] = cache[i];
             }
+            ENDFUNC("genBiomes");
             return 0;
         }
     }
     else if (g->dim == DIM_NETHER)
     {
+        ENDFUNC("genBiomes");
         return genNetherScaled(&g->nn, cache, r, g->mc, g->sha);
     }
     else if (g->dim == DIM_END)
     {
+        ENDFUNC("genBiomes");
         return genEndScaled(&g->en, cache, r, g->mc, g->sha);
     }
-
     return err;
 }
 
@@ -248,6 +256,8 @@ int getBiomeAt(const Generator *g, int scale, int x, int y, int z)
 
 const Layer *getLayerForScale(const Generator *g, int scale)
 {
+    STARTFUNC("getLayerForScale");
+    ENDFUNC("getLayerForScale");
     if (g->mc > MC_1_17)
         return NULL;
     switch (scale)
@@ -600,7 +610,9 @@ size_t getMinLayerCacheSize(const Layer *layer, int sizeX, int sizeZ)
 
 int genArea(const Layer *layer, int *out, int areaX, int areaZ, int areaWidth, int areaHeight)
 {
+    STARTFUNC("genArea");
     memset(out, 0, sizeof(*out)*areaWidth*areaHeight);
+    ENDFUNC("genArea");
     return layer->getMap(layer, out, areaX, areaZ, areaWidth, areaHeight);
 }
 

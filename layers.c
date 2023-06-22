@@ -6,6 +6,8 @@
 #include <float.h>
 #include <immintrin.h>
 
+#define STARTFUNC(name) printf(name); printf("\n")
+#define ENDFUNC(name) printf("return\n")
 
 //==============================================================================
 // Essentials
@@ -1399,6 +1401,7 @@ static Spline *createLandSpline(
 
 float getSpline(const Spline *sp, const float *vals)
 {
+    STARTFUNC("getSpline");
     if (!sp || sp->len <= 0 || sp->len >= 12)
     {
         printf("getSpline(): bad parameters\n");
@@ -1432,6 +1435,7 @@ float getSpline(const Spline *sp, const float *vals)
     float p = l * (h - g) - (o - n);
     float q = -m * (h - g) + (o - n);
     float r = lerp(k, n, o) + k * (1.0F - k) * lerp(k, p, q);
+    ENDFUNC("getSpline");
     return r;
 }
 
@@ -1467,11 +1471,13 @@ void initBiomeNoise(BiomeNoise *bn, int mc)
 int sampleBiomeNoise(const BiomeNoise *bn, int64_t *np, int x, int y, int z,
     uint64_t *dat, uint32_t sample_flags)
 {
+    STARTFUNC("sampleBiomeNoise");
     if (bn->nptype >= 0)
     {   // initialized for a specific climate parameter
         if (np)
             memset(np, 0, NP_MAX*sizeof(*np));
         int64_t id = (int64_t) (10000.0 * sampleClimatePara(bn, np, x, z));
+        ENDFUNC("sampleBiomeNoise");
         return (int) id;
     }
 
@@ -1513,6 +1519,7 @@ int sampleBiomeNoise(const BiomeNoise *bn, int64_t *np, int x, int y, int z,
     int id = none;
     if (!(sample_flags & SAMPLE_NO_BIOME))
         id = p2overworld(bn->mc, (const uint64_t*)p_np, dat);
+    ENDFUNC("sampleBiomeNoise");
     return id;
 }
 
@@ -1573,6 +1580,7 @@ void setClimateParaSeed(BiomeNoise *bn, uint64_t seed, int large, int nptype, in
 
 double sampleClimatePara(const BiomeNoise *bn, int64_t *np, double x, double z)
 {
+    STARTFUNC("sampleClimatePara");
     if (bn->nptype == NP_DEPTH)
     {
         float c, e, w;
@@ -1593,11 +1601,13 @@ double sampleClimatePara(const BiomeNoise *bn, int64_t *np, double x, double z)
             np[4] = (int64_t)(10000.0F*d);
             np[5] = (int64_t)(10000.0F*w);
         }
+        ENDFUNC("sampleClimatePara");
         return d;
     }
     double p = sampleDoublePerlin(bn->climate + bn->nptype, x, 0, z);
     if (np)
         np[bn->nptype] = (int64_t)(10000.0F*p);
+    ENDFUNC("sampleClimatePara");
     return p;
 }
 
@@ -1626,6 +1636,7 @@ void genBiomeNoiseChunkSection(const BiomeNoise *bn, int out[4][4][4],
 
 static void genBiomeNoise3D(const BiomeNoise *bn, int *out, Range r, int opt)
 {
+    STARTFUNC("genBiomeNoise3D");
     uint64_t dat = 0;
     uint64_t *p_dat = opt ? &dat : NULL;
     uint32_t flags = opt ? SAMPLE_NO_SHIFT : 0;
@@ -1647,10 +1658,12 @@ static void genBiomeNoise3D(const BiomeNoise *bn, int *out, Range r, int opt)
             }
         }
     }
+    ENDFUNC("genBiomeNoise3D");
 }
 
 int genBiomeNoiseScaled(const BiomeNoise *bn, int *out, Range r, uint64_t sha)
 {
+    STARTFUNC("genBiomeNoiseScaled");
     if (r.sy == 0)
         r.sy = 1;
 
@@ -1703,6 +1716,7 @@ int genBiomeNoiseScaled(const BiomeNoise *bn, int *out, Range r, uint64_t sha)
         // with a faster, if imperfect, result.
         genBiomeNoise3D(bn, out, r, r.scale > 4);
     }
+    ENDFUNC("genBiomeNoiseScaled");
     return 0;
 }
 
@@ -3700,6 +3714,7 @@ int mapOceanMix(const Layer * l, int * out, int x, int z, int w, int h)
 
 Range getVoronoiSrcRange(Range r)
 {
+    STARTFUNC("getVoronoiSrcRange");
     if (r.scale != 1)
     {
         printf("getVoronoiSrcRange() expects input range with scale 1:1\n");
@@ -3724,12 +3739,14 @@ Range getVoronoiSrcRange(Range r)
         s.y = ty >> 2;
         s.sy = ((ty + r.sy) >> 2) - s.y + 2;
     }
+    ENDFUNC("getVoronoiSrcRange");
     return s;
 }
 
 static inline void getVoronoiCell(uint64_t sha, int a, int b, int c,
         int *x, int *y, int *z)
 {
+    STARTFUNC("getVoronoiCell");
     uint64_t s = sha;
     s = mcStepSeed(s, a);
     s = mcStepSeed(s, b);
@@ -3743,6 +3760,7 @@ static inline void getVoronoiCell(uint64_t sha, int a, int b, int c,
     *y = (((s >> 24) & 1023) - 512) * 36;
     s = mcStepSeed(s, sha);
     *z = (((s >> 24) & 1023) - 512) * 36;
+    ENDFUNC("getVoronoiCell");
 }
 
 void mapVoronoiPlane(uint64_t sha, int *out, int *src,
@@ -4123,6 +4141,7 @@ uint64_t getVoronoiSHA(uint64_t seed)
 
 void voronoiAccess3D(uint64_t sha, int x, int y, int z, int *x4, int *y4, int *z4)
 {
+    STARTFUNC("voronoiAccess3D");
     x -= 2;
     y -= 2;
     z -= 2;
@@ -4165,6 +4184,7 @@ void voronoiAccess3D(uint64_t sha, int x, int y, int z, int *x4, int *y4, int *z
     if (x4) *x4 = ax;
     if (y4) *y4 = ay;
     if (z4) *z4 = az;
+    ENDFUNC("voronoiCell");
 }
 
 

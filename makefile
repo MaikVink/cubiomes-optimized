@@ -28,13 +28,16 @@ ifeq ($(OS),Windows_NT)
 else
 libcubiomes: CFLAGS += -fPIC
 endif
-libcubiomes: noise.o biome_tree.o layers.o generator.o finders.o util.o quadbase.o
+libcubiomes: noise.o biome_tree.o layers.o generator.o finders.o util.o quadbase.o #macro.o
 	$(AR) $(ARFLAGS) libcubiomes.a $^
 
 
 finders.o: finders.c finders.h
 	$(CC) -c $(CFLAGS) $<
 
+# macro.o: macro.h
+# 	$(CC) -c $(CFLAGS) $<
+	
 generator.o: generator.c generator.h
 	$(CC) -c $(CFLAGS) $<
 
