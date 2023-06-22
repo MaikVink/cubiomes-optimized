@@ -3,12 +3,15 @@
 
 #include <math.h>
 #include <stdio.h>
+#define STARTFUNC(name) printf("s "); printf(name); printf("\n")
+#define ENDFUNC(name) printf("r "); printf(name); printf("\n")
 
 
 // grad()
 #if 0
 static double indexedLerp(int idx, double d1, double d2, double d3)
 {
+//    STARTFUNC("indexedLerp");
     const double cEdgeX[] = { 1.0,-1.0, 1.0,-1.0, 1.0,-1.0, 1.0,-1.0,
                               0.0, 0.0, 0.0, 0.0, 1.0, 0.0,-1.0, 0.0 };
     const double cEdgeY[] = { 1.0, 1.0,-1.0,-1.0, 0.0, 0.0, 0.0, 0.0,
@@ -17,12 +20,15 @@ static double indexedLerp(int idx, double d1, double d2, double d3)
                               1.0, 1.0,-1.0,-1.0, 0.0, 1.0, 0.0,-1.0 };
 
     idx &= 0xf;
+//    ENDFUNC("indexedLerp");
     return cEdgeX[idx] * d1 + cEdgeY[idx] * d2 + cEdgeZ[idx] * d3;
 }
 #else
 ATTR(hot, const)
 static inline double indexedLerp(int idx, double a, double b, double c)
 {
+//   STARTFUNC("indexedLerp");
+//   ENDFUNC("indexedLerp");
    switch (idx & 0xf)
    {
    case 0:  return  a + b;
@@ -100,6 +106,7 @@ void xPerlinInit(PerlinNoise *noise, Xoroshiro *xr)
 double samplePerlin(const PerlinNoise *noise, double d1, double d2, double d3,
         double yamp, double ymin)
 {
+//    STARTFUNC("samplePerlin");
     d1 += noise->a;
     d2 += noise->b;
     d3 += noise->c;
@@ -149,6 +156,7 @@ double samplePerlin(const PerlinNoise *noise, double d1, double d2, double d3,
     l1 = lerp(t2, l1, l3);
     l5 = lerp(t2, l5, l7);
 
+//    ENDFUNC("samplePerlin");
     return lerp(t3, l1, l5);
 }
 
@@ -411,6 +419,7 @@ double sampleOctaveAmp(const OctaveNoise *noise, double x, double y, double z,
 
 double sampleOctave(const OctaveNoise *noise, double x, double y, double z)
 {
+    STARTFUNC("sampleOctave");
     double v = 0;
     int i;
     for (i = 0; i < noise->octcnt; i++)
@@ -423,6 +432,7 @@ double sampleOctave(const OctaveNoise *noise, double x, double y, double z)
         double pv = samplePerlin(p, ax, ay, az, 0, 0);
         v += p->amplitude * pv;
     }
+    ENDFUNC("sampleOctave");
     return v;
 }
 
@@ -507,12 +517,14 @@ int xDoublePerlinInit(DoublePerlinNoise *noise, Xoroshiro *xr,
 double sampleDoublePerlin(const DoublePerlinNoise *noise,
         double x, double y, double z)
 {
+    STARTFUNC("sampleDoublePerlin");
     const double f = 337.0 / 331.0;
     double v = 0;
 
     v += sampleOctave(&noise->octA, x, y, z);
     v += sampleOctave(&noise->octB, x*f, y*f, z*f);
 
+    ENDFUNC("sampleDoublePerlin");
     return v * noise->amplitude;
 }
 

@@ -2,6 +2,9 @@
 #define RNG_H_
 
 #define __STDC_FORMAT_MACROS 1
+#include <stdio.h>
+#define STARTFUNC(name) printf("s "); printf(name); printf("\n")
+#define ENDFUNC(name) printf("r "); printf(name); printf("\n")
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -341,13 +344,18 @@ static inline uint64_t getStartSeed(uint64_t ws, uint64_t ls)
  */
 static inline double lerp(double part, double from, double to)
 {
+//    STARTFUNC("lerp");
+//    ENDFUNC("lerp");
     return from + part * (to - from);
 }
 
 static inline double lerp2(
         double dx, double dy, double v00, double v10, double v01, double v11)
 {
-    return lerp(dy, lerp(dx, v00, v10), lerp(dx, v01, v11));
+//    STARTFUNC("lerp2");
+    double lerped = lerp(dy, lerp(dx, v00, v10), lerp(dx, v01, v11));
+//    ENDFUNC("lerp2");
+    return lerped;
 }
 
 static inline double lerp3(
@@ -355,16 +363,27 @@ static inline double lerp3(
         double v000, double v100, double v010, double v110,
         double v001, double v101, double v011, double v111)
 {
+//    STARTFUNC("lerp3");
     v000 = lerp2(dx, dy, v000, v100, v010, v110);
     v001 = lerp2(dx, dy, v001, v101, v011, v111);
-    return lerp(dz, v000, v001);
+    double lerped = lerp(dz, v000, v001);
+//    ENDFUNC("lerp3");
+    return lerped;
 }
 
 static inline double clampedLerp(double part, double from, double to)
 {
-    if (part <= 0) return from;
-    if (part >= 1) return to;
-    return lerp(part, from, to);
+//    STARTFUNC("clampedLerp");
+    if (part <= 0) {
+//        ENDFUNC("clampedLerp");
+    }
+    if (part >= 1) {
+//        ENDFUNC("clampedLerp");
+        return to; 
+    }
+    double lerped = lerp(part, from, to);
+//    ENDFUNC("clampedLerp");
+    return lerped;
 }
 
 /* Find the modular inverse: (1/x) | mod m.
@@ -373,17 +392,22 @@ static inline double clampedLerp(double part, double from, double to)
 static inline ATTR(const)
 uint64_t mulInv(uint64_t x, uint64_t m)
 {
+    STARTFUNC("mulInv");
     uint64_t t, q, a, b, n;
-    if ((int64_t)m <= 1)
+    if ((int64_t)m <= 1) {
+        ENDFUNC("mulInv");
         return 0; // no solution
+    }
 
     n = m;
     a = 0; b = 1;
 
     while ((int64_t)x > 1)
     {
-        if (m == 0)
+        if (m == 0) {
+            ENDFUNC("mulInv");
             return 0; // x and m are co-prime
+        }
         q = x / m;
         t = m; m = x % m;     x = t;
         t = a; a = b - q * a; b = t;
@@ -391,6 +415,7 @@ uint64_t mulInv(uint64_t x, uint64_t m)
 
     if ((int64_t)b < 0)
         b += n;
+    ENDFUNC("mulInv");
     return b;
 }
 
