@@ -1407,8 +1407,12 @@ float getSpline(const Spline *sp, const float *vals)
         exit(1);
     }
 
-    if (sp->len == 1)
-        return ((FixSpline*)sp)->val;
+    if (sp->len == 1) {
+        float v = ((FixSpline *) sp)->val;
+        ENDFUNC("getSpline");
+        return v;
+    }
+
 
     float f = vals[sp->typ];
     int i;
