@@ -6,9 +6,13 @@
 #include <string.h>
 #include <math.h>
 
-#define STARTFUNC(name) //printf("s "); printf(name); printf("\n")
-#define ENDFUNC(name) //printf("r "); printf(name); printf("\n")
-
+#ifdef INCLUDE_STACKTRACE
+#define STARTFUNC(name) printf("s "); printf(name); printf("\n")
+    #define ENDFUNC(name) printf("r "); printf(name); printf("\n")
+#else
+#define STARTFUNC(name) ;
+#define ENDFUNC(name) ;
+#endif
 int mapOceanMixMod(const Layer * l, int * out, int x, int z, int w, int h)
 {
     int *otyp;

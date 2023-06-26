@@ -5,12 +5,18 @@
 #include <stdio.h>
 #include <immintrin.h>
 
-#define STARTFUNC(name) //printf("s "); printf(name); printf("\n")
-#define ENDFUNC(name) //printf("r "); printf(name); printf("\n")
-
 static union { float d[4]; __m128 d4;  } dUnion;
 static union { int i[4]; __m128i i4;   } iUnion;
 static union { float t[4]; __m128 t4; } tUnion;
+
+#ifdef INCLUDE_STACKTRACE
+    #define STARTFUNC(name) printf("s "); printf(name); printf("\n")
+    #define ENDFUNC(name) printf("r "); printf(name); printf("\n")
+#else
+    #define STARTFUNC(name) ;
+    #define ENDFUNC(name) ;
+#endif
+
 
 // grad()
 #if 0
