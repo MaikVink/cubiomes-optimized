@@ -26,7 +26,7 @@ native: libcubiomes
 
 ifeq ($(OS),Windows_NT)
 else
-libcubiomes: CFLAGS += -fPIC
+libcubiomes: CFLAGS += -fPIC -msse4.1 -msse
 endif
 libcubiomes: noise.o biome_tree.o layers.o generator.o finders.o util.o quadbase.o #macro.o
 	$(AR) $(ARFLAGS) libcubiomes.a $^
