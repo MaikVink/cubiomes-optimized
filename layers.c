@@ -1450,15 +1450,15 @@ float getSpline(const Spline *sp, const float *vals)
     const Spline *sp1 = sp->val[i-1];
     const Spline *sp2 = sp->val[i];
     float g = sp->loc[i-1];
-    float h = sp->loc[i];
-    float k = (f - g) / (h - g);
+    float hMinG = sp->loc[i] - g;
+    float k = (f - g) / hMinG;
     float l = sp->der[i-1];
     float m = sp->der[i];
     float n = getSpline(sp1, vals);
-    float o = getSpline(sp2, vals);
-    float p = l * (h - g) - (o - n);
-    float q = -m * (h - g) + (o - n);
-    float r = lerp(k, n, o) + k * (1.0F - k) * lerp(k, p, q);
+    float oMinN = getSpline(sp2, vals) - n;
+    float p = l * hMinG - oMinN;
+    float q = -m * hMinG + oMinN;
+    float r = /*lerp(k, n, o)*/ (n + k * oMinN) + k * (1.0F - k) * lerp(k, p, q);
     ENDFUNC("getSpline");
     return r;
 }
