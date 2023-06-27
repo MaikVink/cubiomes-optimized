@@ -175,49 +175,62 @@ double samplePerlin(const PerlinNoise *noise, double d1, double d2, double d3,
 double samplePerlinSmallSIMD(const PerlinNoise *noise, double d1, double d2, double d3,
         double yamp, double ymin)
 {
-    d1 += noise->a;
-    d2 += noise->b;
-    d3 += noise->c;
+    //    d1 += noise->a;
+    //    d2 += noise->b;
+    //    d3 += noise->c;
+    static union {double d[4]; __m256d d4;} d4s;
+    d4s.d4 = _mm256_add_pd(_mm256_set_pd(d1, d2, d3, 0), _mm256_set_pd(noise->a, noise->b, noise->c, 0));
     const uint8_t *idx = noise->d;
-    int i1 = (int) floor(d1);
-    int i2 = (int) floor(d2);
-    int i3 = (int) floor(d3);
 
-    d1 -= i1;
-    d2 -= i2;
-    d3 -= i3;
-    double t1 = d1*d1*d1 * (d1 * (d1*6.0-15.0) + 10.0);
-    double t2 = d2*d2*d2 * (d2 * (d2*6.0-15.0) + 10.0);
-    double t3 = d3*d3*d3 * (d3 * (d3*6.0-15.0) + 10.0);
+    //    int i1 = (int) floor(d1);
+    //    int i2 = (int) floor(d2);
+    //    int i3 = (int) floor(d3);
+    static union {int i[4]; __m128i i4;} i4s;
+    i4s.i4 = _mm256_cvtpd_epi32(d4s.d4);
+    
+//    d1 -= i1;
+//    d2 -= i2;
+//    d3 -= i3;
+    d4s.d4 = _mm256_sub_pd(d4s.d4, _mm256_cvtepi32_pd(i4s.i4));
+
+//    double t1 = d1*d1*d1 * (d1 * (d1*6.0-15.0) + 10.0);
+//    double t2 = d2*d2*d2 * (d2 * (d2*6.0-15.0) + 10.0);
+//    double t3 = d3*d3*d3 * (d3 * (d3*6.0-15.0) + 10.0);
+    static union {double t[4]; __m256d t4;} t4s;
+    t4s.t4 = _mm256_mul_pd(
+            _mm256_mul_pd(_mm256_mul_pd(d4s.d4, d4s.d4), d4s.d4), // dx * dx * dx
+            _mm256_add_pd(
+                    _mm256_mul_pd(d4s.d4, _mm256_sub_pd(_mm256_mul_pd(d4s.d4, _mm256_set1_pd(6.0)), _mm256_set1_pd(15.0)) // dx * (dx * 6.0 - 15.0)
+                          ), _mm256_set1_pd(10.0)));
 
     if (yamp)
     {
-        double yclamp = ymin < d2 ? ymin : d2;
-        d2 -= floor(yclamp / yamp) * yamp;
+        double yclamp = ymin < d4s.d[2] ? ymin : d4s.d[2];
+        d4s.d[2] -= floor(yclamp / yamp) * yamp;
     }
 
-    i1 &= 0xff;
-    i2 &= 0xff;
-    i3 &= 0xff;
+    i4s.i4 = _mm_and_si128(i4s.i4, _mm_set1_epi32(0xff));
 
-    int a1 = idx[i1]   + i2;
-    int b1 = idx[i1+1] + i2;
+    int a1 = idx[i4s.i[1]]   + i4s.i[2];
+    int b1 = idx[i4s.i[1]] + i4s.i[2];
 
-    int a2 = idx[a1]   + i3;
-    int a3 = idx[a1+1] + i3;
-    int b2 = idx[b1]   + i3;
-    int b3 = idx[b1+1] + i3;
+    int a2 = idx[a1]   + i4s.i[3];
+    int a3 = idx[a1+1] + i4s.i[3];
+    int b2 = idx[b1]   + i4s.i[3];
+    int b3 = idx[b1+1] + i4s.i[3];
 
-    double l1 = indexedLerp(idx[a2],   d1,   d2,   d3);
-    double l2 = indexedLerp(idx[b2],   d1-1, d2,   d3);
-    double l3 = indexedLerp(idx[a3],   d1,   d2-1, d3);
-    double l4 = indexedLerp(idx[b3],   d1-1, d2-1, d3);
-    double l5 = indexedLerp(idx[a2+1], d1,   d2,   d3-1);
-    double l6 = indexedLerp(idx[b2+1], d1-1, d2,   d3-1);
-    double l7 = indexedLerp(idx[a3+1], d1,   d2-1, d3-1);
-    double l8 = indexedLerp(idx[b3+1], d1-1, d2-1, d3-1);
+    static union {double d[4]; __m256d d4;} d4sMin1;
+    d4sMin1.d4 = _mm256_sub_pd(d4s.d4, _mm256_set1_pd(1));
+    double l1 = indexedLerp(idx[a2],   d4s.d4[1]    , d4s.d4[2]     , d4s.d4[3]);
+    double l2 = indexedLerp(idx[b2],   d4sMin1.d4[1], d4s.d4[2]     , d4s.d4[3]);
+    double l3 = indexedLerp(idx[a3],   d4s.d4[1]    , d4sMin1.d4[2] , d4s.d4[3]);
+    double l4 = indexedLerp(idx[b3],   d4sMin1.d4[1], d4sMin1.d4[2] , d4s.d4[3]);
+    double l5 = indexedLerp(idx[a2+1], d4s.d4[1]    , d4s.d4[2]     , d4sMin1.d4[3]);
+    double l6 = indexedLerp(idx[b2+1], d4sMin1.d4[1], d4s.d4[2]     , d4sMin1.d4[3]);
+    double l7 = indexedLerp(idx[a3+1], d4s.d4[1]    , d4sMin1.d4[2] , d4sMin1.d4[3]);
+    double l8 = indexedLerp(idx[b3+1], d4sMin1.d4[1], d4sMin1.d4[2] , d4sMin1.d4[3]);
 
-    __m128 t1four = _mm_set1_ps(t1);
+    __m128 t1four = _mm_set1_ps(t4s.t[1]);
     __m128 l2468 = _mm_setr_ps(l2, l4, l6, l8);
     
     static union {float l[4]; __m128 l4;} l1357; 
@@ -231,10 +244,10 @@ double samplePerlinSmallSIMD(const PerlinNoise *noise, double d1, double d2, dou
                 )
             );
 
-    l1 = lerp(t2, l1357.l[0], l1357.l[1]);
-    l5 = lerp(t2, l1357.l[2], l1357.l[3]);
+    l1 = lerp(t4s.t[2], l1357.l[0], l1357.l[1]);
+    l5 = lerp(t4s.t[2], l1357.l[2], l1357.l[3]);
 
-    return lerp(t3, l1, l5);
+    return lerp(t4s.t[3], l1, l5);
 }
 
 
