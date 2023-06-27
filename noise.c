@@ -125,6 +125,7 @@ double samplePerlin(const PerlinNoise *noise, double d1, double d2, double d3,
     int i1 = (int) floor(d1);
     int i2 = (int) floor(d2);
     int i3 = (int) floor(d3);
+
     d1 -= i1;
     d2 -= i2;
     d3 -= i3;
@@ -171,9 +172,75 @@ double samplePerlin(const PerlinNoise *noise, double d1, double d2, double d3,
     return lerp(t3, l1, l5);
 }
 
+double samplePerlinSmallSIMD(const PerlinNoise *noise, double d1, double d2, double d3,
+        double yamp, double ymin)
+{
+    d1 += noise->a;
+    d2 += noise->b;
+    d3 += noise->c;
+    const uint8_t *idx = noise->d;
+    int i1 = (int) floor(d1);
+    int i2 = (int) floor(d2);
+    int i3 = (int) floor(d3);
+
+    d1 -= i1;
+    d2 -= i2;
+    d3 -= i3;
+    double t1 = d1*d1*d1 * (d1 * (d1*6.0-15.0) + 10.0);
+    double t2 = d2*d2*d2 * (d2 * (d2*6.0-15.0) + 10.0);
+    double t3 = d3*d3*d3 * (d3 * (d3*6.0-15.0) + 10.0);
+
+    if (yamp)
+    {
+        double yclamp = ymin < d2 ? ymin : d2;
+        d2 -= floor(yclamp / yamp) * yamp;
+    }
+
+    i1 &= 0xff;
+    i2 &= 0xff;
+    i3 &= 0xff;
+
+    int a1 = idx[i1]   + i2;
+    int b1 = idx[i1+1] + i2;
+
+    int a2 = idx[a1]   + i3;
+    int a3 = idx[a1+1] + i3;
+    int b2 = idx[b1]   + i3;
+    int b3 = idx[b1+1] + i3;
+
+    double l1 = indexedLerp(idx[a2],   d1,   d2,   d3);
+    double l2 = indexedLerp(idx[b2],   d1-1, d2,   d3);
+    double l3 = indexedLerp(idx[a3],   d1,   d2-1, d3);
+    double l4 = indexedLerp(idx[b3],   d1-1, d2-1, d3);
+    double l5 = indexedLerp(idx[a2+1], d1,   d2,   d3-1);
+    double l6 = indexedLerp(idx[b2+1], d1-1, d2,   d3-1);
+    double l7 = indexedLerp(idx[a3+1], d1,   d2-1, d3-1);
+    double l8 = indexedLerp(idx[b3+1], d1-1, d2-1, d3-1);
+
+    __m128 t1four = _mm_set1_ps(t1);
+    __m128 l2468 = _mm_setr_ps(l2, l4, l6, l8);
+    
+    static union {float l[4]; __m128 l4;} l1357; 
+    l1357.l4 = _mm_setr_ps(l1, l3, l5, l7);
+
+    l1357.l4 = _mm_add_ps(
+                l1357.l4,
+                _mm_mul_ps(
+                    t1four,
+                    _mm_sub_ps(l2468, l1357.l4)
+                )
+            );
+
+    l1 = lerp(t2, l1357.l[0], l1357.l[1]);
+    l5 = lerp(t2, l1357.l[2], l1357.l[3]);
+
+    return lerp(t3, l1, l5);
+}
+
+
 double samplePerlinSIMD(const PerlinNoise *noise, double d1, double d2, double d3, double yamp, double ymin)
 {
-    dUnion.d4= _mm_set_ps(noise->a, noise->b, noise->c, 0);
+    dUnion.d4= _mm_add_ps(_mm_setr_ps(d1, d2, d3, 0), _mm_setr_ps(noise->a, noise->b, noise->c, 0));
 
     iUnion.i4 = _mm_cvttps_epi32(_mm_floor_ps(dUnion.d4));
     dUnion.d4 = _mm_sub_ps(dUnion.d4, _mm_cvtepi32_ps(iUnion.i4));
@@ -192,12 +259,12 @@ double samplePerlinSIMD(const PerlinNoise *noise, double d1, double d2, double d
                             _mm_sub_ps(
                                 _mm_mul_ps(
                                     dUnion.d4,
-                                    _mm_set_ps(6, 6, 6, 0)
+                                    _mm_setr_ps(6, 6, 6, 0)
                                 ),
-                                _mm_set_ps(15, 15, 15, 0)
+                                _mm_setr_ps(15, 15, 15, 0)
                             )
                         ),
-                        _mm_set_ps(10, 10, 10, 0)
+                        _mm_setr_ps(10, 10, 10, 0)
                     )   
                 )
             )
@@ -240,12 +307,12 @@ double samplePerlinSIMD(const PerlinNoise *noise, double d1, double d2, double d
     double l8 = indexedLerp(idx[b3+1], d1-1, d2-1, d3-1);
 
     __m128 t1four = _mm_set1_ps(tUnion.t[0]);
-    __m128 t2four = _mm_set_ps(tUnion.t[1], 0, tUnion.t[1], 0);
+    __m128 t2four = _mm_setr_ps(tUnion.t[1], 0, tUnion.t[1], 0);
 
     static union {float l[4]; __m128 l4;} l1357; 
-    l1357.l4 = _mm_set_ps(l1, l3, l5, l7);
+    l1357.l4 = _mm_setr_ps(l1, l3, l5, l7);
 
-    __m128 l2468 = _mm_set_ps(l2, l4, l6, l8);
+    __m128 l2468 = _mm_setr_ps(l2, l4, l6, l8);
 
     l1357.l4 = _mm_add_ps(
                 l1357.l4,
@@ -255,9 +322,9 @@ double samplePerlinSIMD(const PerlinNoise *noise, double d1, double d2, double d
                 )
             );
 
-    __m128 l0307 = _mm_set_ps(l1357.l[1], 0, l1357.l[3], 0);        
+    __m128 l0307 = _mm_setr_ps(l1357.l[1], 0, l1357.l[3], 0);        
     static union {float l[4]; __m128 l4;} l1050;
-    l1050.l4 = _mm_set_ps(l1357.l[0], 0, l1357.l[2], 0);
+    l1050.l4 = _mm_setr_ps(l1357.l[0], 0, l1357.l[2], 0);
     l1050.l4 = _mm_add_ps(
                         l1050.l4,
                         _mm_mul_ps(
@@ -266,7 +333,6 @@ double samplePerlinSIMD(const PerlinNoise *noise, double d1, double d2, double d
                         )
                     );
     
-
     return lerp(tUnion.t[2], l1050.l[0], l1050.l[2]);
 
 }
@@ -541,7 +607,8 @@ double sampleOctave(const OctaveNoise *noise, double x, double y, double z)
         double ax = maintainPrecision(x * lf);
         double ay = maintainPrecision(y * lf);
         double az = maintainPrecision(z * lf);
-        double pv = samplePerlinSIMD(p, ax, ay, az, 0, 0);
+        double pv = samplePerlinSmallSIMD(p, ax, ay, az, 0, 0);
+        //printf("%f\n", pv);
         v += p->amplitude * pv;
     }
     ENDFUNC("sampleOctave");
