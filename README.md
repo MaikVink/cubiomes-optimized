@@ -1,3 +1,8 @@
+This is fork of the Cubiomes, used for the Opitimization and Vectorization course at the University Utrecht 2022-2023. The repository includes some small attempts at optimizing the code, as well as an example program and several additions used for program analysis.
+
+
+Below is a copy of the original readme of the forked branch:
+
 # cubiomes
 
 Cubiomes is a standalone library, written in C, that mimics the biome and feature generation of Minecraft Java Edition.
